@@ -1,0 +1,11 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.env
+
+# written by the notebook at run time
+buggy.py
+test_buggy.py
