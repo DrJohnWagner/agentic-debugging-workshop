@@ -20,18 +20,19 @@ You need Python 3.10+, VS Code with the Jupyter extension, and an
 [OpenRouter](https://openrouter.ai/) API key.
 
 ```bash
-git clone <this repo>
+git clone https://github.com/DrJohnWagner/agentic-debugging-workshop.git
 cd agentic-debugging-workshop
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+cp .env.example .env               # then edit .env and paste your key
 ```
 
 Then open `notebooks/agent_workshop_student.ipynb` and select the `.venv` kernel.
 
-The notebook asks for your API key with `getpass`, so it is never written to the
-notebook file and never appears in your shell history. Do not paste your key into a
-cell.
+Put your key in `.env` as `OPENROUTER_API_KEY`. The notebook loads it with
+`python-dotenv`, `.env` is git-ignored, and the key never lands in the notebook
+file or your shell history. Do not paste your key into a cell.
 
 ### Check your setup before the session
 
@@ -69,15 +70,20 @@ That is the whole argument for the loop, demonstrated rather than asserted.
 
 ## Cost
 
-The default model is `nvidia/nemotron-3.5-lightning` via OpenRouter: a 30B
-mixture-of-experts model with ~3B active parameters, trained for tool-calling
-execution, at roughly $0.08 / $0.20 per million input / output tokens. A full agent
-run costs a fraction of a cent.
+The notebooks default to `nvidia/nemotron-3.5-lightning:free` via OpenRouter: an
+open mixture-of-experts model from NVIDIA, 3B active parameters out of 30B total,
+built for tool calling and JSON-schema structured output. The `:free` endpoint
+costs nothing; OpenRouter rate-limits it per account per day, which is enough for a
+handful of runs.
+
+If the rate limit gets in your way, drop the `:free` suffix for the paid endpoint:
+$0.08 / $0.20 per million input / output tokens ($0.04/M on cache reads), a fraction
+of a cent per run. Set a spend limit on any paid key.
 
 Swapping models is one string in the setup cell:
 
 ```python
-MODEL = "nvidia/nemotron-3.5-lightning"
+MODEL = "nvidia/nemotron-3.5-lightning:free"
 ```
 
 ## Safety notes
