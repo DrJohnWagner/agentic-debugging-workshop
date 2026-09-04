@@ -2,3 +2,12 @@ openai>=1.40
 python-dotenv>=1.0
 pytest>=8.0
 ipykernel>=6.29
+
+# Part 2 — Microsoft Agent Framework
+agent-framework-openai>=1.14
+
+# Part 3 — CrewAI
+# Installing crewai alongside agent-framework-openai produces pip warnings about
+# conflicting opentelemetry pins. Both still import and run correctly together;
+# give each part its own virtual environment if you would rather avoid the noise.
+crewai>=1.15

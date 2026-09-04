@@ -3,7 +3,11 @@
 A short workshop in which you write an AI agent — the whole thing, about fifteen
 lines — and watch it find and fix a bug in a real file on your disk.
 
-No frameworks. The point is to see the mechanism before anything hides it from you.
+Part 1 uses no frameworks at all. The point is to see the mechanism before anything
+hides it from you. Parts 2 and 3 then rebuild the identical agent on Microsoft Agent
+Framework and on CrewAI, so you can watch your loop collapse into a single method
+call — twice — and see how thoroughly two frameworks disagree about everything
+except the loop itself.
 
 ## The idea
 
@@ -30,7 +34,7 @@ cp .env.example .env               # then edit .env and paste your key
 
 Then open `notebooks/agent_workshop_student.ipynb` and select the `.venv` kernel.
 
-Put your key in `.env` as `OPENROUTER_API_KEY`. The notebook loads it with
+Put your key in `.env` as `OPENROUTER_API_KEY`. The notebooks load it with
 `python-dotenv`, `.env` is git-ignored, and the key never lands in the notebook
 file or your shell history. Do not paste your key into a cell.
 
@@ -43,12 +47,25 @@ before the workshop rather than during it.
 
 ```
 notebooks/
-    agent_workshop_student.ipynb       # the loop is left as TODOs — this is the one you work in
-    agent_workshop_instructor.ipynb    # complete, plus teaching notes and variations
+    agent_workshop_student.ipynb       # part 1 — the loop is left as TODOs, work in this one
+    agent_workshop_instructor.ipynb    # part 1 complete, plus teaching notes and variations
+    microsoft_student.ipynb            # part 2 — the same agent on Microsoft Agent Framework
+    microsoft_instructor.ipynb         # part 2 complete, plus teaching notes
+    crewai_student.ipynb               # part 3 — the same agent again, on CrewAI
+    crewai_instructor.ipynb            # part 3 complete, plus a multi-agent extension
 ```
 
+**Part 1 first, always.** The value of parts 2 and 3 is recognising that `agent.run()`
+and `crew.kickoff()` do what you wrote by hand an hour earlier. Taught first, a
+framework produces exactly the mental model this workshop exists to prevent — that the
+library is doing something clever on the model's behalf.
+
+Parts 2 and 3 are interchangeable in order, but do at least two of them. One framework
+looks like *the* way to build agents; two frameworks disagreeing about what an agent
+even is makes the point on their own.
+
 The Python files the agent works on (`buggy.py`, `test_buggy.py`) are not in the repo.
-The notebook writes them itself with `%%writefile`, which also gives you a reset
+Every notebook writes them itself with `%%writefile`, which also gives you a reset
 button: re-run that cell to restore the bug and try the agent again from scratch.
 
 ## The shape of the session
@@ -60,6 +77,20 @@ button: re-run that cell to restore the bug and try the agent again from scratch
 4. Run it against a failing test suite and read the transcript.
 5. Break it on purpose and find out what the loop was actually buying you.
 
+Then in part 2:
+
+6. Rebuild the same agent with Microsoft Agent Framework, where the schemas are
+   generated for you and the loop lives inside `run()`.
+7. Recover the transcript with function middleware, and work out where your turn cap
+   went.
+
+And in part 3:
+
+8. Rebuild it once more on CrewAI, which wants an Agent, a Task and a Crew where
+   Agent Framework wanted a single object.
+9. Compare all three side by side, and notice that the only row they agree on is the
+   loop.
+
 ## The bug
 
 `buggy.py` contains a mutable default argument. It reads as completely correct and
@@ -67,6 +98,9 @@ fails only on the *second* call, so it cannot be found by staring at it — the 
 has to run the tests and reason from the evidence.
 
 That is the whole argument for the loop, demonstrated rather than asserted.
+
+The same bug, the same three tools and the same task run through all three parts, so
+the framework is the only variable across the notebooks.
 
 ## Cost
 
@@ -86,6 +120,9 @@ Swapping models is one string in the setup cell:
 MODEL = "nvidia/nemotron-3.5-lightning:free"
 ```
 
+CrewAI's ReAct-style prompting uses noticeably more tokens per turn than the other two
+notebooks, so part 3 is the one most likely to reach the free tier's daily limit.
+
 ## Safety notes
 
 `edit_file` writes to your disk and `run_tests` starts a subprocess. Both are
@@ -93,5 +130,8 @@ deliberately narrow, and the `DISPATCH` dictionary is the agent's entire set of
 powers — if a function isn't in that dict, the model cannot invoke it. That dict is a
 permission boundary you control, which is worth remembering the next time you are
 tempted to add a `run_shell` tool.
+
+Parts 2 and 3 rename that boundary but do not remove it: it becomes the `tools=[...]`
+list you hand to the agent. Same rule, different spelling.
 
 Run this in a directory you don't mind it editing.
