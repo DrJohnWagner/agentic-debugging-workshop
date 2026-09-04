@@ -4,10 +4,10 @@ A short workshop in which you write an AI agent — the whole thing, about fifte
 lines — and watch it find and fix a bug in a real file on your disk.
 
 Part 1 uses no frameworks at all. The point is to see the mechanism before anything
-hides it from you. Parts 2 and 3 then rebuild the identical agent on Microsoft Agent
-Framework and on CrewAI, so you can watch your loop collapse into a single method
-call — twice — and see how thoroughly two frameworks disagree about everything
-except the loop itself.
+hides it from you. Parts 2 to 5 then rebuild the identical agent four more times, on
+Microsoft Agent Framework, CrewAI, LangGraph and smolagents — so you can watch your
+loop get hidden, drawn as a graph, and finally replaced by a Python interpreter, while
+the bug it fixes never changes.
 
 ## The idea
 
@@ -53,16 +53,31 @@ notebooks/
     microsoft_instructor.ipynb         # part 2 complete, plus teaching notes
     crewai_student.ipynb               # part 3 — the same agent again, on CrewAI
     crewai_instructor.ipynb            # part 3 complete, plus a multi-agent extension
+    langgraph_student.ipynb            # part 4 — the loop rebuilt as an explicit graph
+    langgraph_instructor.ipynb         # part 4 complete, plus teaching notes
+    smolagents_student.ipynb           # part 5 — the outlier, where the action is Python
+    smolagents_instructor.ipynb        # part 5 complete, plus teaching notes
 ```
 
-**Part 1 first, always.** The value of parts 2 and 3 is recognising that `agent.run()`
-and `crew.kickoff()` do what you wrote by hand an hour earlier. Taught first, a
-framework produces exactly the mental model this workshop exists to prevent — that the
-library is doing something clever on the model's behalf.
+**Part 1 first, always.** The value of everything after it is recognising that
+`agent.run()`, `crew.kickoff()` and the rest do what you wrote by hand an hour earlier.
+Taught first, a framework produces exactly the mental model this workshop exists to
+prevent — that the library is doing something clever on the model's behalf.
 
-Parts 2 and 3 are interchangeable in order, but do at least two of them. One framework
-looks like *the* way to build agents; two frameworks disagreeing about what an agent
-even is makes the point on their own.
+After that, parts 2 to 5 stand alone and can be run in any order or in any subset. What
+each one adds:
+
+| | what it varies |
+|---|---|
+| 2 · Agent Framework | the loop disappears into one object; observability becomes middleware |
+| 3 · CrewAI | agents get personas, tasks get rubrics, orchestration gets a crew |
+| 4 · LangGraph | the loop comes back as a graph you can draw, branch and checkpoint |
+| 5 · smolagents | the action stops being JSON and becomes Python |
+
+**If you only have time for three notebooks, run 1 → 2 → 5.** That sequence gives the
+sharpest contrast: build the mechanism, watch a framework hide it, then meet a framework
+that changes what the mechanism is. Parts 3 and 4 are the ones to add when you have a
+full day rather than a session.
 
 The Python files the agent works on (`buggy.py`, `test_buggy.py`) are not in the repo.
 Every notebook writes them itself with `%%writefile`, which also gives you a reset
@@ -77,19 +92,20 @@ button: re-run that cell to restore the bug and try the agent again from scratch
 4. Run it against a failing test suite and read the transcript.
 5. Break it on purpose and find out what the loop was actually buying you.
 
-Then in part 2:
+Then, in the framework parts:
 
 6. Rebuild the same agent with Microsoft Agent Framework, where the schemas are
    generated for you and the loop lives inside `run()`.
 7. Recover the transcript with function middleware, and work out where your turn cap
    went.
-
-And in part 3:
-
-8. Rebuild it once more on CrewAI, which wants an Agent, a Task and a Crew where
-   Agent Framework wanted a single object.
-9. Compare all three side by side, and notice that the only row they agree on is the
-   loop.
+8. Rebuild it on CrewAI, which wants an Agent, a Task and a Crew where Agent Framework
+   wanted a single object.
+9. Rebuild it on LangGraph as an explicit graph of nodes and edges — then have it draw
+   itself, and compare the picture with the pseudocode from part 1.
+10. Rebuild it once more on smolagents, where the agent writes Python instead of JSON,
+    and read the code it actually wrote.
+11. Compare all five side by side. Notice how little they agree on, and that the loop
+    is one of the few things they do.
 
 ## The bug
 
@@ -99,7 +115,7 @@ has to run the tests and reason from the evidence.
 
 That is the whole argument for the loop, demonstrated rather than asserted.
 
-The same bug, the same three tools and the same task run through all three parts, so
+The same bug, the same three tools and the same task run through all five parts, so
 the framework is the only variable across the notebooks.
 
 ## Cost
@@ -120,8 +136,10 @@ Swapping models is one string in the setup cell:
 MODEL = "nvidia/nemotron-3.5-lightning:free"
 ```
 
-CrewAI's ReAct-style prompting uses noticeably more tokens per turn than the other two
-notebooks, so part 3 is the one most likely to reach the free tier's daily limit.
+Two notebooks ask more of the model than the others. CrewAI's ReAct-style prompting
+uses noticeably more tokens per turn, and smolagents asks the model to write working
+Python rather than emit a tool call. If either misbehaves, a stronger model is a
+one-line change.
 
 ## Safety notes
 
@@ -131,7 +149,14 @@ powers — if a function isn't in that dict, the model cannot invoke it. That di
 permission boundary you control, which is worth remembering the next time you are
 tempted to add a `run_shell` tool.
 
-Parts 2 and 3 rename that boundary but do not remove it: it becomes the `tools=[...]`
-list you hand to the agent. Same rule, different spelling.
+Parts 2 to 4 rename that boundary but do not remove it: it becomes the `tools=[...]`
+list you hand to the agent, or the `ToolNode` in the graph. Same rule, different
+spelling.
+
+Part 5 is the exception and deserves a closer read. smolagents executes model-written
+Python, so the boundary has to become an interpreter with an import allowlist rather
+than a list of functions. That is real protection and it is still a larger surface
+than JSON tool calls — smolagents supports Docker and remote sandbox executors for
+when the default is not enough.
 
 Run this in a directory you don't mind it editing.

@@ -7,7 +7,16 @@ ipykernel>=6.29
 agent-framework-openai>=1.14
 
 # Part 3 — CrewAI
-# Installing crewai alongside agent-framework-openai produces pip warnings about
-# conflicting opentelemetry pins. Both still import and run correctly together;
-# give each part its own virtual environment if you would rather avoid the noise.
 crewai>=1.15
+
+# Part 4 — LangGraph
+langgraph>=1.2
+langchain-openai>=1.6
+
+# Part 5 — smolagents
+smolagents>=1.26
+
+# Installing all five parts into one environment produces pip warnings about
+# conflicting opentelemetry pins between crewai and agent-framework-openai.
+# Everything still imports and runs together; give each part its own virtual
+# environment if you would rather not see the noise.
